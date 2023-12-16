@@ -1,0 +1,112 @@
+<head>
+<title>PC</title>
+</head>
+
+<table>
+  <tr>
+    <td>CPU</td>
+    <td>AMD Ryzen 9 5950X 16-Core Processor</td>
+  </tr>
+  <tr>
+    <td>GPU</td>
+    <td>AMD Radeon RX 6900 XT (RADV NAVI21)</td>
+  </tr>
+  <tr>
+    <td>OS</td>
+    <td>Gentoo Linux</td>
+  </tr>
+</table>
+
+<section>
+  <h1>OS</h1>
+  <p>
+     My operating system of choice is Linux. That enables to
+     configure most of an OS. Gentoo enables to disable most
+     of the features that I do not need on my system.
+  </p>
+  <p>
+     I do not like Windows. Only part that it is good for is
+     games. That is because of developers choices. But wine,
+     dxvk, vkd3d started to change that. Now I play my games
+     on linux.
+  </p>
+  <pre>
+</section>
+
+<section>
+  <h1>General Purpose</h1>
+  <pre><code>
+$ # for coding
+# emerge -av neovim helix
+# emerge -av tmux
+$ # for wm
+# emerge -av sway
+$ # for media
+# emerge -av mpv
+$ # for web
+# emerge -av librewolf
+$ # for image processing
+# emerge -av gimp
+$ # for virtual machines
+# emerge -av qemu
+  </code></pre>
+</section>
+
+<section>
+  <h1>Gaming</h1>
+  <p>
+     I use sway with no xwayland. So this means that I am
+     not using winex11.drv driver. I use winewayland.drv 
+     that is in development. It has couple of visual quirks
+     like context menus in windows act like new windows. 
+     But it is not an issue.
+  </p>
+  <pre><code>
+$ # for nintendo games
+# emerge -av =yuzu-9999
+$ # for windows games
+# emerge -av =wine-vanilla-9999 =dxvk =vkd3d-proton-9999
+  </code></pre>
+  <h2>Setup</h2>
+  <pre><code>
+wine_setup.sh
+#!/bin/sh
+
+# your wine installation
+export WINEPREFIX=/tmp/gaming/wine
+export WINEFSYNC=1
+export DOSDEVICE_Z="${WINEPREFIX%/*}"
+
+export WINEHOME="$WINEPREFIX/drive_c/users/$USER"
+export WINEAPPDATADIR="$WINEHOME/AppData/Local"
+
+mkdir -p "$WINEPREFIX"
+wine hostname
+
+# dont access whole root system
+rm -f "$WINEPREFIX/dosdevices/z:"
+ln -sf "$DOSDEVICE_Z" "$WINEPREFIX/dosdevices/z:"
+
+echo "PREFIX: $WINEPREFIX"
+echo "FSYC:   $WINEFSYNC"
+echo "dosdevices:"
+echo "  z: $DOSDEVICE_Z"
+
+# https://wiki.winehq.org/Useful_Registry_Keys
+# HKEY_CURRENT_USER\Software\Wine\Drivers\Graphics
+#    Which graphic driver to use. (comma seperated)
+#    mac:     Use the native quartz driver (default on macOS)
+#    x11:     Use the X11 driver
+#    wayland: Use the Wayland driver
+#    null:    Use the null driver (a virtual screen will be created, but not displayed; available since Wine 5.2)
+wine cmd /c "reg add HKEY_CURRENT_USER\\Software\\Wine\\Drivers /v Graphics /t REG_SZ /d wayland /f" >/dev/null 2>&1
+
+setup_dxvk.sh install
+setup_vkd3d_proton.sh install
+  </code></pre>
+  <h2>Launch Game</h2>
+  <pre><code>
+$ cd $DOSDEVICE_Z
+$ wine game.exe
+  </code></pre>
+</section>
